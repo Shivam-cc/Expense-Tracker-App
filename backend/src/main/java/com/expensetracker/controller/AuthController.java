@@ -3,6 +3,7 @@ package com.expensetracker.controller;
 import com.expensetracker.dto.AuthRequest;
 import com.expensetracker.dto.AuthResponse;
 import com.expensetracker.dto.RegisterRequest;
+import com.expensetracker.dto.SendOtpRequest;
 import com.expensetracker.service.AuthService;
 import com.expensetracker.service.KeyService;
 import jakarta.validation.Valid;
@@ -20,6 +21,16 @@ public class AuthController {
     private final AuthService authService;
     private final KeyService keyService;
 
+    /**
+     * Step 1 of sign-up: validates email availability, generates OTP, and sends it.
+     * In dev mode the OTP is also returned in the response body ({@code devOtp}).
+     */
+    @PostMapping("/send-otp")
+    public ResponseEntity<Map<String, Object>> sendOtp(@Valid @RequestBody SendOtpRequest request) {
+        return ResponseEntity.ok(authService.sendOtp(request));
+    }
+
+    /** Step 2 of sign-up: verifies OTP, creates account, returns JWT. */
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));

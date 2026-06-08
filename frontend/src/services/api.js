@@ -26,6 +26,8 @@ export const authApi = {
     request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
   register: (data) =>
     request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+  sendOtp: (data) =>
+    request('/auth/send-otp', { method: 'POST', body: JSON.stringify(data) }),
 }
 
 export const expensesApi = {

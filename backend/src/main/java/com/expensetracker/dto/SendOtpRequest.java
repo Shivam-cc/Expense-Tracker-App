@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegisterRequest {
+public class SendOtpRequest {
 
     @NotBlank(message = "Name is required")
     @Size(min = 2, max = 50)
@@ -19,10 +19,4 @@ public class RegisterRequest {
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;
-
-    @NotBlank(message = "Password is required")
-    private String password;
-
-    @NotBlank(message = "OTP is required")
-    private String otp;
 }

@@ -20,9 +20,9 @@ export function AuthProvider({ children }) {
     setUser({ name: res.name, email: res.email })
   }, [])
 
-  const register = useCallback(async (name, email, password) => {
+  const register = useCallback(async (name, email, password, otp) => {
     const encrypted = await preparePassword(password)
-    const res = await authApi.register({ name, email, password: encrypted })
+    const res = await authApi.register({ name, email, password: encrypted, otp })
     localStorage.setItem('token', res.token)
     localStorage.setItem('user', JSON.stringify({ name: res.name, email: res.email }))
     setToken(res.token)
