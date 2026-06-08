@@ -8,7 +8,6 @@ import com.expensetracker.model.Role;
 import com.expensetracker.model.User;
 import com.expensetracker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,9 +28,6 @@ public class AuthService {
     private final OtpService otpService;
     private final EmailService emailService;
 
-    @Value("${app.otp.dev-mode:true}")
-    private boolean devOtpMode;
-
     /**
      * Validates the email, generates an OTP, and sends it.
      * In dev mode the OTP is also returned in the response so you can test without email.
@@ -46,9 +42,6 @@ public class AuthService {
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Verification code sent to " + request.getEmail());
-        if (devOtpMode) {
-            response.put("devOtp", otp);   // only in dev — remove in production
-        }
         return response;
     }
 
