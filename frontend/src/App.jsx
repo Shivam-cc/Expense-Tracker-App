@@ -7,7 +7,8 @@ import DashboardPage from './pages/DashboardPage'
 import LandingPage from './pages/LandingPage'
 
 function App() {
-  const { isAuthenticated } = useAuth()
+  const auth = useAuth()
+  const isAuthenticated = auth?.isAuthenticated ?? false
   return (
     <Routes>
       <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />} />

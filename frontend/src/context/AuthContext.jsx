@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback } from 'react'
 import { authApi } from '../services/api'
+import { hashPassword } from '../utils/crypto'
 
 const AuthContext = createContext(null)
 
@@ -11,7 +12,8 @@ export function AuthProvider({ children }) {
   })
 
   const login = useCallback(async (email, password) => {
-    const res = await authApi.login({ email, password })
+    const hashed = await hashPassword(password)
+    const res = await authApi.login({ email, password: hashed })
     localStorage.setItem('token', res.token)
     localStorage.setItem('user', JSON.stringify({ name: res.name, email: res.email }))
     setToken(res.token)
@@ -19,7 +21,8 @@ export function AuthProvider({ children }) {
   }, [])
 
   const register = useCallback(async (name, email, password) => {
-    const res = await authApi.register({ name, email, password })
+    const hashed = await hashPassword(password)
+    const res = await authApi.register({ name, email, password: hashed })
     localStorage.setItem('token', res.token)
     localStorage.setItem('user', JSON.stringify({ name: res.name, email: res.email }))
     setToken(res.token)
