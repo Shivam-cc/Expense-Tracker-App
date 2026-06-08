@@ -20,16 +20,25 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final KeyService keyService;
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered");
         }
 
+        // Decrypt RSA-OAEP envelope → plain SHA-256 hash from browser
+        String decodedPassword;
+        try {
+            decodedPassword = keyService.decrypt(request.getPassword());
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid password encoding");
+        }
+
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
+                .password(passwordEncoder.encode(decodedPassword))
                 .role(Role.USER)
                 .build();
 
@@ -44,10 +53,18 @@ public class AuthService {
     }
 
     public AuthResponse login(AuthRequest request) {
+        // Decrypt RSA-OAEP envelope → plain SHA-256 hash from browser
+        String decodedPassword;
+        try {
+            decodedPassword = keyService.decrypt(request.getPassword());
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid password encoding");
+        }
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
-                        request.getPassword()
+                        decodedPassword
                 )
         );
 
