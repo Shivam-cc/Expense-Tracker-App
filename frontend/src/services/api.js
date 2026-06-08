@@ -1,4 +1,16 @@
-const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080') + '/api'
+// Ensure the API URL always has a protocol prefix.
+// If VITE_API_URL is set without https:// (e.g. in Vercel dashboard) the browser
+// would treat it as a relative path on the current origin — so we force https://.
+function resolveBaseUrl() {
+  const raw = import.meta.env.VITE_API_URL
+  if (!raw) return 'http://localhost:8080/api'
+  const url = raw.startsWith('http://') || raw.startsWith('https://')
+    ? raw
+    : 'https://' + raw
+  return url.replace(/\/$/, '') + '/api'   // strip trailing slash, add /api
+}
+
+const BASE_URL = resolveBaseUrl()
 
 function getToken() {
   return localStorage.getItem('token')
