@@ -26,10 +26,19 @@ async function request(path, options = {}) {
     ...options,
   })
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.message || `Request failed with status ${res.status}`)
+    const ct = res.headers.get('content-type') || ''
+    if (ct.includes('application/json')) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.message || `Request failed with status ${res.status}`)
+    }
+    // Non-JSON error page (HTML 404/502 from proxy/CDN)
+    throw new Error(`Request failed with status ${res.status}. Check that the backend is reachable.`)
   }
   if (res.status === 204) return null
+  const contentType = res.headers.get('content-type') || ''
+  if (!contentType.includes('application/json')) {
+    throw new Error('Server returned an unexpected response format.')
+  }
   return res.json()
 }
 

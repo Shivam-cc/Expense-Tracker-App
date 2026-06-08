@@ -10,7 +10,16 @@
  *   { "password": "Xk9mP2q..." }  ← 344-char encrypted blob, meaningless without private key
  */
 
-const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080') + '/api'
+function resolveBaseUrl() {
+  const raw = import.meta.env.VITE_API_URL
+  if (!raw) return 'http://localhost:8080/api'
+  const url = raw.startsWith('http://') || raw.startsWith('https://')
+    ? raw
+    : 'https://' + raw
+  return url.replace(/\/$/, '') + '/api'
+}
+
+const BASE_URL = resolveBaseUrl()
 
 async function sha256hex(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
@@ -21,7 +30,13 @@ async function sha256hex(text) {
 
 async function fetchAndImportPublicKey() {
   const res = await fetch(`${BASE_URL}/auth/public-key`)
-  const { publicKey } = await res.json()
+  if (!res.ok) {
+    throw new Error(`Could not reach auth server (status ${res.status}). Is the backend running?`)
+  }
+  const data = await res.json().catch(() => {
+    throw new Error('Auth server returned an unexpected response. Please try again.')
+  })
+  const { publicKey } = data
   const der = Uint8Array.from(atob(publicKey), (c) => c.charCodeAt(0))
   return crypto.subtle.importKey(
     'spki',
