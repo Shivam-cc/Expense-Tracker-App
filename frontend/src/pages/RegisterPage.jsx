@@ -22,6 +22,7 @@ export default function RegisterPage() {
 
   // ── step 2 state ──────────────────────────────────────────────────────────
   const [otp, setOtp] = useState('')
+  const [devOtp, setDevOtp] = useState(null)  // only set locally when backend returns it
   const [countdown, setCountdown] = useState(300) // 5-min expiry
   const [resendCooldown, setResendCooldown] = useState(30)
   const [canResend, setCanResend] = useState(false)
@@ -53,7 +54,8 @@ export default function RegisterPage() {
     setError('')
     setLoading(true)
     try {
-      await authApi.sendOtp({ name: form.name, email: form.email })
+      const res = await authApi.sendOtp({ name: form.name, email: form.email })
+      if (res.devOtp) setDevOtp(res.devOtp)
       setStep(2)
       setCountdown(300)
       setResendCooldown(30)
@@ -86,7 +88,8 @@ export default function RegisterPage() {
     setError('')
     setLoading(true)
     try {
-      await authApi.sendOtp({ name: form.name, email: form.email })
+      const res = await authApi.sendOtp({ name: form.name, email: form.email })
+      if (res.devOtp) setDevOtp(res.devOtp)
       setCountdown(300)
       setResendCooldown(30)
       setCanResend(false)
@@ -214,9 +217,16 @@ export default function RegisterPage() {
           {/* ── STEP 2 ──────────────────────────────────────────────────── */}
           {step === 2 && (
             <form onSubmit={handleVerify} className="space-y-5">
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
-                A 6-digit code was sent to <strong>{form.email}</strong>. Check your inbox (and spam folder).
-              </div>
+              {devOtp ? (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm flex items-center gap-2">
+                  <span className="text-amber-700 font-medium">Dev mode — your code:</span>
+                  <span className="font-mono font-bold text-amber-800 tracking-widest text-base">{devOtp}</span>
+                </div>
+              ) : (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+                  A 6-digit code was sent to <strong>{form.email}</strong>. Check your inbox (and spam folder).
+                </div>
+              )}
 
               <OtpInput
                 value={otp}
