@@ -42,12 +42,13 @@ public class AuthService {
         }
 
         String otp = otpService.generateAndStore(request.getEmail());
-        emailService.sendOtpEmail(request.getEmail(), otp, request.getName());
+        boolean emailSent = emailService.sendOtpEmail(request.getEmail(), otp, request.getName());
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Verification code sent to " + request.getEmail());
-        // devOtpMode is true only for local profile — never in production
-        if (devOtpMode) response.put("devOtp", otp);
+        // Return OTP in response if email couldn't be delivered (Resend not configured/failed)
+        // or dev mode is on — always hidden in prod when email works
+        if (devOtpMode || !emailSent) response.put("devOtp", otp);
         return response;
     }
 

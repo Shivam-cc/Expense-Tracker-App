@@ -35,12 +35,12 @@ public class EmailService {
             .connectTimeout(Duration.ofSeconds(10))
             .build();
 
-    public void sendOtpEmail(String toEmail, String otp, String name) {
-        log.info("[OTP] code for {} → {}", toEmail, otp);
+    public boolean sendOtpEmail(String toEmail, String otp, String name) {
+        log.info("[OTP] *** code for {} => {} ***", toEmail, otp);
 
         if (apiKey == null || apiKey.isBlank()) {
-            log.warn("[OTP] RESEND_API_KEY not set — email not sent (OTP visible in logs above).");
-            return;
+            log.warn("[OTP] RESEND_API_KEY not set — OTP only in logs above.");
+            return false;
         }
 
         String body = """
@@ -64,15 +64,15 @@ public class EmailService {
 
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
                 log.info("[OTP] Email sent to {} via Resend", toEmail);
+                return true;
             } else {
-                log.error("[OTP] Resend API error {}: {}", response.statusCode(), response.body());
-                throw new RuntimeException("Failed to send verification email. Please try again.");
+                log.error("[OTP] Resend API error {} — OTP is in logs above. Body: {}",
+                        response.statusCode(), response.body());
+                return false;
             }
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
-            log.error("[OTP] Email delivery failed: {}", e.getMessage());
-            throw new RuntimeException("Failed to send verification email. Please try again.");
+            log.error("[OTP] Email delivery failed: {} — OTP is in logs above.", e.getMessage());
+            return false;
         }
     }
 
