@@ -11,7 +11,10 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setForm({ ...form, [name]: name === 'email' ? value.toLowerCase() : value })
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()

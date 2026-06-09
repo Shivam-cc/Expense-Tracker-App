@@ -12,8 +12,9 @@ export function AuthProvider({ children }) {
   })
 
   const login = useCallback(async (email, password) => {
+    const normalizedEmail = email.trim().toLowerCase()
     const encrypted = await preparePassword(password)
-    const res = await authApi.login({ email, password: encrypted })
+    const res = await authApi.login({ email: normalizedEmail, password: encrypted })
     localStorage.setItem('token', res.token)
     localStorage.setItem('user', JSON.stringify({ name: res.name, email: res.email }))
     setToken(res.token)
@@ -21,8 +22,9 @@ export function AuthProvider({ children }) {
   }, [])
 
   const register = useCallback(async (name, email, password, otp) => {
+    const normalizedEmail = email.trim().toLowerCase()
     const encrypted = await preparePassword(password)
-    const res = await authApi.register({ name, email, password: encrypted, otp })
+    const res = await authApi.register({ name: name.trim(), email: normalizedEmail, password: encrypted, otp })
     localStorage.setItem('token', res.token)
     localStorage.setItem('user', JSON.stringify({ name: res.name, email: res.email }))
     setToken(res.token)

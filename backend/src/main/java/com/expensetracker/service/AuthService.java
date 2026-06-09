@@ -37,28 +37,30 @@ public class AuthService {
      * In dev mode the OTP is also returned in the response so you can test without email.
      */
     public Map<String, Object> sendOtp(SendOtpRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String email = request.getEmail().trim().toLowerCase();
+
+        if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email already registered");
         }
 
-        String otp = otpService.generateAndStore(request.getEmail());
-        boolean emailSent = emailService.sendOtpEmail(request.getEmail(), otp, request.getName());
+        String otp = otpService.generateAndStore(email);
+        boolean emailSent = emailService.sendOtpEmail(email, otp, request.getName());
 
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Verification code sent to " + request.getEmail());
-        // Return OTP in response if email couldn't be delivered (Resend not configured/failed)
-        // or dev mode is on — always hidden in prod when email works
+        response.put("message", "Verification code sent to " + email);
         if (devOtpMode || !emailSent) response.put("devOtp", otp);
         return response;
     }
 
     public AuthResponse register(RegisterRequest request) {
+        String email = request.getEmail().trim().toLowerCase();
+
         // Verify OTP before creating the account
-        if (!otpService.verify(request.getEmail(), request.getOtp())) {
+        if (!otpService.verify(email, request.getOtp())) {
             throw new RuntimeException("Invalid or expired verification code");
         }
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email already registered");
         }
 
@@ -71,8 +73,8 @@ public class AuthService {
         }
 
         User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
+                .name(request.getName().trim())
+                .email(email)
                 .password(passwordEncoder.encode(decodedPassword))
                 .role(Role.USER)
                 .build();
@@ -88,6 +90,8 @@ public class AuthService {
     }
 
     public AuthResponse login(AuthRequest request) {
+        String email = request.getEmail().trim().toLowerCase();
+
         // Decrypt RSA-OAEP envelope → plain SHA-256 hash from browser
         String decodedPassword;
         try {
@@ -97,13 +101,10 @@ public class AuthService {
         }
 
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        decodedPassword
-                )
+                new UsernamePasswordAuthenticationToken(email, decodedPassword)
         );
 
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String jwtToken = jwtService.generateToken(user);

@@ -46,7 +46,10 @@ export default function RegisterPage() {
     return () => clearInterval(t)
   }, [step, resendCooldown, canResend])
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setForm({ ...form, [name]: name === 'email' ? value.toLowerCase() : value })
+  }
 
   // ── Step 1: send OTP ──────────────────────────────────────────────────────
   const handleSendOtp = async (e) => {
